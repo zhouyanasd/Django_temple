@@ -1,0 +1,207 @@
+material_views.py
+
+NmrMaterial = models.NmrMaterial.objects.all().values('id','name','description','state','location_id__id')
+NmrMaterial = models.NmrLocationMaterial.objects.all()
+
+material_serializers.py
+
+class NmrLocationMaterial(serializers.ModelSerializer):
+     desc = serializers.CharField(source='material.description')
+     status = serializers.IntegerField(source='material.state')
+     id = serializers.IntegerField(source='material.id')
+     name= serializers.CharField(source='material.name')
+     location_id = serializers.IntegerField(source='location.id')
+     class Meta:
+         model = models.NmrLocationMaterial
+         fields = ('id','name','desc','status','location_id')
+
+url.py
+
+url(r'^list/(?P<status>[0-9]+)/$',propname_views.PropNameList.as_view(),name= 'PropName_list'),
+
+
+
+About data
+
+import datetime
+
+        i = datetime.datetime.now()
+        data = {
+            'name': request.POST.get('name'),
+            'desc': request.POST.get('desc'),
+            'status': int(request.POST.get('status')),
+            # 'addtime':  ("%s-%s-%s" % (i.year, i.month, i.day)),
+            # 'edittime': ("%s-%s-%s" % (i.year, i.month, i.day))
+        }
+
+
+NmrMaterial = models.NmrMaterial.objects.raw('select * from nmr_material WHERE ID=1')
+
+
+
+
+
+class PropNameDetail(APIView):
+    def get_object(self, request, property_id):
+        try:
+            return models.PropName.objects.get(id=property_id)
+        except models.PropName.DoesNotExist:
+            raise Http404
+
+    def get_object_relationship(self, request, relationship_id):
+        try:
+            return models.NmrMaterialProp.objects.get(id=relationship_id)
+        except models.NmrMaterialProp.DoesNotExist:
+            raise Http404
+
+    def get(self, request):
+        relationship_id = request.GET.get('property_id')
+        if relationship_id != None:
+            relationship = self.get_object_relationship(request,relationship_id)
+            property_id = int(relationship.property)
+            PropName = self.get_object(request, property_id)
+            serializer = propname_serializers.PropNameSerializers(PropName)
+            return JsonResponse(data=serializer.data, code= 0, msg='get PropNameDetail success')
+        else:
+            return JsonResponse(data=[], code=1, msg='False')
+
+
+
+
+
+class PropNameAdd(APIView):
+    def get_object(self, request, property_id):
+        try:
+            return models.PropName.objects.get(id=property_id)
+        except models.PropName.DoesNotExist:
+            raise Http404
+
+    def get_object_relationship(self, request, relationship_id):
+        try:
+            return models.NmrMaterialProp.objects.get(id=relationship_id)
+        except models.NmrMaterialProp.DoesNotExist:
+            raise Http404
+
+    def foreignkey_save(self, request, property):
+        property_id = property['id'].value
+        data = {
+            'material': int(request.POST.get('material_id')),
+            'property': int(property_id),
+        }
+        serializer = propname_serializers.NmrMaterialPropSerializersAdd(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return property_id
+        return JsonResponse(data=[], code=1, msg='False')
+
+    def post(self, request):
+        if request.POST.get('name') !=None and request.POST.get('material_id'):
+            data = {
+                'name': request.POST.get('name'),
+                'desc': request.POST.get('desc'),
+                'status': int(request.POST.get('status')),
+                'range': request.POST.get('range'),
+                'error': request.POST.get('error'),
+            }
+            try:
+                PropName = models.PropName.objects.get(name=request.POST.get('name'),
+                                                       description=request.POST.get('desc'),
+                                                       state=int(request.POST.get('status')),
+                                                       )
+                serializer = propname_serializers.PropNameSerializers(PropName)
+                property_id = self.foreignkey_save(request, serializer)
+                serializer = propname_serializers.PropNameSerializers(self.get_object(request, property_id))
+                return JsonResponse(data=serializer.data, code=0, msg='add PropName success')
+            except models.PropName.DoesNotExist:
+                serializer = propname_serializers.PropNameSerializers(data=data)
+                if serializer.is_valid():
+                    serializer.save()
+                    property_id = self.foreignkey_save(request,serializer)
+                    serializer = propname_serializers.PropNameSerializers(self.get_object(request, property_id))
+                    return JsonResponse(data=serializer.data, code=0, msg='add PropName success')
+                return JsonResponse(data=[], code=1, msg='False')
+        else:
+            return JsonResponse(data=[], code=1, msg='False')
+
+
+class NmrMaterialSerializers(serializers.ModelSerializer):
+    material = serializers.PrimaryKeyRelatedField(many= True,read_only=True)
+    desc = serializers.CharField(source='description')
+    status = serializers.IntegerField(source='state')
+    class Meta:
+        model = models.NmrMaterial
+        fields = ('id','name','desc','status','location_id','material')
+
+
+
+about Q query
+
+
+from django.http import Http404
+from rest_framework.views import APIView
+from django.db.models import Q
+
+from fecodb import models
+from fecodb.serilizers import prop_pre_serializers
+from fecodb.utils.json import JsonResponse
+
+
+class PropPreMethodList(APIView):
+    def get_prop_material(self,request):
+        property_id = request.GET.get('property_id')
+        material_id = request.GET.get('material_id')
+        di = {}
+        if property_id != None:
+            di['property'] = property_id
+        if material_id != None:
+            di['material'] = material_id
+        q = Q()
+        for i in di:
+            q.add(Q(**{i: di[i]}), Q.AND)
+        try:
+            prop_material = models.NmrMaterialProp.objects.filter(q)
+            q_ = Q()
+            for item in prop_material:
+                q_.add(Q(**{'prop_material': item.id}), Q.OR)
+            return q_
+        except models.NmrMaterialProp.DoesNotExist:
+            raise Http404
+
+    def get_pre_process(self,request):
+        status = request.GET.get('status')
+        di = {}
+        if status != None:
+            di['state'] = status
+        q = Q()
+        for i in di:
+            q.add(Q(**{i: di[i]}), Q.AND)
+        try:
+            pre_process = models.PropPreProcess.objects.filter(q)
+            q_ = Q()
+            for item in pre_process:
+                q_.add(Q(**{'prop_material': item.id}), Q.OR)
+            return q_
+        except models.NmrMaterialProp.DoesNotExist:
+            raise Http404
+
+    def get_object(self, request):
+        pre_treat_id = request.GET.get('pre_treat_id')
+        kwargs = {}
+        if pre_treat_id != None:
+            kwargs['pre_treat'] = pre_treat_id
+        q_prop_material = self.get_prop_material(request)
+        q_pre_process = self.get_pre_process(request)
+        try:
+            Queryset = models.PropPreMethod.objects.filter(q_pre_process, q_prop_material,**kwargs)
+            return Queryset
+        except models.PropPreMethod.DoesNotExist:
+            raise Http404
+
+    def get(self, request):
+        PropPreMethod = self.get_object(request)
+        serializer = prop_pre_serializers.PropPreMethodSerializers(PropPreMethod, many=True)
+        return JsonResponse(data=serializer.data, code=0)
+
+
+a = m.NmrMaterialProp.objects.filter(property=1, nmr__id=1).query
+SELECT `nmr_material_prop`.`ID`, `nmr_material_prop`.`PROPERTY_ID`, `nmr_material_prop`.`MATERIAL_ID`, `nmr_material_prop`.`DEF_CONF_ID`, `nmr_material_prop`.`STATE` FROM `nmr_material_prop` INNER JOIN `analysis_props` ON (`nmr_material_prop`.`ID` = `analysis_props`.`PROP_NAME_ID`) WHERE (`analysis_props`.`ID` = 1 AND `nmr_material_prop`.`PROPERTY_ID` = 1)

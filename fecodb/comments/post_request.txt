@@ -1,0 +1,84 @@
+nmr_location:
+add: name='pp'&desc='PP'&status=1
+update: name='ppp'&desc='PPP'&status=0&location_id=14
+
+nmr_material:
+add: name='pp'&desc='PP'&status=1
+update: name='ppp'&desc='PPP'&status=0&material_id=14
+
+prop_name:
+add: name='pp'&desc='PP'&status=1&range='11'&error='22'
+update: name='pp'&desc='PP131'&status=1&range='11'&error='22'&property_id=13
+
+prop_material:
+add: material_id=1&property_id=1&status=0&process_id=23
+update: material_id=2&property_id=2&process_id=32&property_material_id=3&status=0
+
+location_material:
+add: location_id=6&material_id=2&status=0
+update: location_id=5&material_id=2&location_material_id=7&status=0
+
+pre_treat:
+add:  name='pp'&desc='PP'&status=1&input=11&output=22&params=5&priority=16
+update: name='ppp'&desc='PPp'&status=2&input=16&output=13&params=6&priority=21&pre_treat_id=1
+
+analysis_method:
+add:  name='pp'&desc='PP'&status=1&input=11&output=22&params=5
+update: name='ppp'&desc='PPp'&status=2&input=16&output=13&params=6&priority=21&analysis_method_id=1
+
+nmr:
+list:?start_time=2017-9-6&end_time=2017-9-9&status=0&is_evaluate=1
+add: value='[1,2,3]'&sample_time=2017-9-11&location_id=5&material_id=1&status=0&is_evaluate=1
+update: value='[1,2,3]'&sample_time=2017-9-11&location_id=5&material_id=1&status=0&nmr_id=6&is_evaluate=1
+
+prop_pre:
+list: ?material_id=2&property_id=1&status=1&pre_treat_id=2
+add: name=sb&desc=sbsbsb&params=[1,1,1,2]&pre_treat_id=2&property_id=1&material_id=1&pre_process_id=1&priority=0
+update: name=sb&desc=sbsbsb&params=[1,1,1,2]&pre_treat_id=2&property_id=1&material_id=1&pre_process_id=1&priority=0&prop_pre_id=7
+
+pro_analysis:
+list:?material_id=2&property_id=1&status=1&analysis_method_id=1?id_list=[1,2]
+add: name=sb&desc=sbsbsb&params=[1,1,1,2]&analysis_method_id=2&property_id=1&material_id=1&analysis_process_id=1&priority=0
+update: name=sb&desc=sbsbsb&params=[1,1,1,2]&analysis_method_id=2&property_id=1&material_id=1&analysis_process_id=2&priority=0&prop_analysis_id=7
+
+--------------------------
+pre_proc:
+list:?material_id=2&property_id=1&status=1
+add: name=bbb&desc=2131&status=0&own_id=1
+
+addlist: name=bbb&desc=2131&status=0&own_id=1&property_id=1&material_id=1&prop_pre_list=[{"desc": "sbsbsb", "priority": 0,
+ "params": "[1,1,1,2]", "pre_treat_id": 2}, {"desc": "ffsbsbsb", "priority": 1, "params": "[1,1,1,2]", "pre_treat_id": 2}]
+update: name=bbb&desc=2131&status=0&own_id=1&pre_proc_id&pre_proc_id=8
+
+updatelist: name=bbb&desc=2131&status=0&own_id=1&property_id=1&material_id=1&prop_pre_list=[{"desc": "sbsbsb",
+"priority": 0, "params": "[1,1,1,2]", "pre_treat_id": 2, "prop_pre_id" : 26}, {"desc": "ffsbsbsb", "priority": 1,
+"params": "[1,1,1,2]", "pre_treat_id": 2, "prop_pre_id" : 25}]&pre_proc_id=30
+
+json: {"prop_pre_list": [{"desc": "sbsbsb", "priority": 0, "params": "[1,1,1,2]", "pre_treat_id": 2},
+{"desc": "ffsbsbsb", "priority": 1, "params": "[1,1,1,2]", "pre_treat_id": 2}]}
+----------------------------------
+
+analysis_proc:
+list:?material_id=2&property_id=1&status=1
+add: name=bbb&desc=2131&status=0&own_id=1
+update: name=bbb&desc=2131&status=0&own_id=1&analysis_proc_id=6
+json: {"prop_analysis_list": [{"desc": "sbsbsb", "priority": 0, "params": "[1,1,1,2]", "analysis_method_id": 2},
+{"desc": "ffsbsbsb", "priority": 1, "params": "[1,1,2,2]", "analysis_method_id": 2}]}
+
+nmr_rlt:
+list:?start_time=2017-9-12&end_time=2017-9-14&status=0&location_id=1&property_id=1&material_id=1&property_id=1&nmr_id=1&process_id=1
+add:sample_time=2017-9-9&status=0&process_id=1&nmr_id=1&value=0.32&property_id=1
+update:sample_time=2017-9-8&status=0&process_id=1&nmr_id=1&value=0.32&property_id=1&nmr_rlt_id=9
+
+pre_analysis:
+list:?status=1&material_id=1&property_id=1
+add: name=ccc&desc=woc&property_id=1&material_id=1&pre_proc_id=1&analysis_proc_id=1&status=0&own_id=1
+update: name=ccc&desc=woc&property_id=1&material_id=1&pre_proc_id=1&analysis_proc_id=1&status=0&own_id=1&pre_analysis_id=8
+
+calculate:
+post : nmr_id=1&pre_proc_id=1&analysis_proc_id=1&property_id=1&material_id=1
+post : nmr_id=1&pre_proc_id=2&analysis_proc_id=2&property_id=1&material_id=1
+
+
+
+

@@ -1,0 +1,2 @@
+nmr:
+add: {"sample_time":"2017-09-07","status":0,"value":"[12,23,56]","location_id":1,"material_id":1}

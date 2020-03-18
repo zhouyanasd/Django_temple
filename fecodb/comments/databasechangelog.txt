@@ -1,0 +1,20 @@
+2017.9.8
+All the 'datatime' type have been changed to 'data' type
+
+2017.9.13
+All the foreignkey to 'Propname' changed to 'NmrMaterialProp'
+
+2017.9.15
+pre_analysis_process add description and name
+
+2017.9.19
+nmr table add 'IS_EVALUATE'
+prop_pre_process table add 'SECTION'
+
+2017.22
+pre_treatment_method and analysis_method add 'URL'
+
+
+
+
+
